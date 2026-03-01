@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PhishGuard EDU</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #eef2f7, #d9e4f5);
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 60px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 80%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 35px;
+            padding: 25px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            text-align: left;
+        }
+
+        .risk-bar-container {
+            width: 100%;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            height: 18px;
+        }
+
+        .risk-bar {
+            height: 18px;
+            border-radius: 10px;
+        }
+
+        ul {
+            margin-top: 10px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>PhishGuard EDU</h1>
+    <p class="subtitle">AI-Powered Phishing Detection for Students</p>
+
+    <input type="text" id="urlInput" placeholder="Paste suspicious URL here">
+    <br>
+    <button onclick="analyze()">Analyze</button>
+
+    <div class="result" id="result" style="display:none;"></div>
+
+    <div class="footer">
+        Privacy-first. Local analysis. Explainable AI.
+    </div>
+</div>
+
+<script>
+async function analyze() {
+    const url = document.getElementById("urlInput").value;
+
+    if (!url) {
+        alert("Please enter a URL.");
+        return;
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url })
+    });
+
+    const data = await response.json();
+
+    let color = "green";
+    if (data.risk_score >= 60) {
+        color = "red";
+    } else if (data.risk_score >= 35) {
+        color = "orange";
+    }
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.style.display = "block";
+
+    resultDiv.innerHTML = `
+        <h2 style="color:${color};">Result: ${data.label}</h2>
+        <p><strong>Risk Score:</strong> ${data.risk_score}/100</p>
+
+        <div class="risk-bar-container">
+            <div class="risk-bar" style="width:${data.risk_score}%; background:${color};"></div>
+        </div>
+
+        <p><strong>Explanation:</strong></p>
+        <ul>
+            ${data.explanation.map(e => `<li>${e}</li>`).join("")}
+        </ul>
+
+        <p><strong>Cyber Tip:</strong> ${data.cyber_tip}</p>
+    `;
+}
+</script>
+
+</body>
+</html>
